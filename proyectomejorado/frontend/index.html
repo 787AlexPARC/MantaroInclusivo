@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <meta name="description" content="Turismo accesible en el Valle del Mantaro para personas con discapacidad motriz, visual, auditiva y cognitiva">
+    <title>Mantaro Inclusivo | Turismo Accesible en el Valle del Mantaro</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Skip to content link para accesibilidad -->
+    <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+
+    <div class="container">
+        <!-- Header con logo y navegación accesible -->
+        <header class="site-header" role="banner">
+            <div class="logo-area">
+                <h1> Mantaro Inclusivo</h1>
+                <div class="tagline">Turismo accesible para todas las capacidades · Valle del Mantaro, Junín</div>
+            </div>
+            <div class="logo-image">
+                <img src="logo1.jpg" alt="Logo Mantaro Inclusivo - Turismo accesible en el Valle del Mantaro" onerror="this.src='https://placehold.co/200x80?text=Mantaro+Inclusivo'">
+            </div>
+        </header>
+
+        <!-- Barra de alerta INDECI -->
+        <div id="alertIndeci" class="alert-bar" role="alert">
+            <div class="alert-text">
+                <i class="fas fa-cloud-showers-heavy" aria-hidden="true"></i>
+                <span><strong>INDECI - ALERTA:</strong> Lluvias intensas en zona centro: se recomienda precaución en carreteras. Manténgase informado.</span>
+            </div>
+            <button class="btn-close-alert" id="closeAlertBtn" aria-label="Cerrar alerta">
+                Cerrar <i class="fas fa-times-circle" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Navegación principal -->
+        <nav class="nav-tabs" role="navigation" aria-label="Navegación principal">
+            <button class="nav-btn active" data-tab="tab1" aria-label="Registro e inicio de sesión">
+                <i class="fas fa-user-plus" aria-hidden="true"></i> Registro / Login
+            </button>
+            <button class="nav-btn" data-tab="tab2" aria-label="Mapa interactivo y asistente virtual">
+                <i class="fas fa-map-marked-alt" aria-hidden="true"></i> Mapa + Asistente IA
+            </button>
+            <button class="nav-btn" data-tab="tab3" aria-label="Catálogo de destinos turísticos">
+                <i class="fas fa-umbrella-beach" aria-hidden="true"></i> Catálogo de Destinos
+            </button>
+        </nav>
+
+        <!-- Contenido principal -->
+        <main id="main-content">
+            <!-- Sección de Registro -->
+            <section id="tab1" class="section active-section" aria-label="Registro y perfil de usuario">
+                <div class="card">
+                    <h2><i class="fas fa-id-card" aria-hidden="true"></i> Crear cuenta o iniciar sesión</h2>
+                    <form id="registerForm">
+                        <div class="form-grid">
+                            <div class="input-group">
+                                <label for="nombres">Nombres <span class="required">*</span></label>
+                                <input type="text" id="nombres" name="nombres" placeholder="Ej: Ana María" required aria-required="true">
+                            </div>
+                            <div class="input-group">
+                                <label for="apellidos">Apellidos <span class="required">*</span></label>
+                                <input type="text" id="apellidos" name="apellidos" placeholder="Apellidos" required aria-required="true">
+                            </div>
+                            <div class="input-group">
+                                <label for="email">Correo electrónico <span class="required">*</span></label>
+                                <input type="email" id="email" name="email" placeholder="usuario@ejemplo.com" required aria-required="true">
+                            </div>
+                            <div class="input-group">
+                                <label for="telefono">Teléfono</label>
+                                <input type="tel" id="telefono" name="telefono" placeholder="+51 999 888 777">
+                            </div>
+                            <div class="input-group">
+                                <label for="password">Contraseña <span class="required">*</span></label>
+                                <input type="password" id="password" name="password" placeholder="••••••" required aria-required="true">
+                                <div class="password-strength" id="passwordStrength"></div>
+                            </div>
+                            <div class="input-group">
+                                <label for="metodoVerificacion">Método de verificación</label>
+                                <select id="metodoVerificacion" name="metodoVerificacion">
+                                    <option value="email">Verificación por email</option>
+                                    <option value="SMS">Verificación por SMS</option>
+                                    <option value="2FA">Autenticación 2FA</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn-primary">
+                                <i class="fas fa-registered" aria-hidden="true"></i> Registrarse
+                            </button>
+                            <button type="button" class="btn-outline" id="loginBtn">
+                                <i class="fas fa-sign-in-alt" aria-hidden="true"></i> Iniciar Sesión
+                            </button>
+                        </div>
+                    </form>
+                    <div id="formFeedback" class="feedback-message" role="alert" aria-live="polite"></div>
+                </div>
+
+                <!-- Perfil de accesibilidad -->
+                <div class="card">
+                    <h3><i class="fas fa-universal-access" aria-hidden="true"></i> Elige tu perfil de accesibilidad</h3>
+                    <p>Personaliza las recomendaciones del mapa y asistente IA según tu discapacidad.</p>
+                    <div class="perfiles-accesibilidad" id="perfilesContainer" role="radiogroup" aria-label="Perfiles de accesibilidad">
+                        <div data-perfil="motriz" class="perfil-badge" role="radio" aria-checked="false" tabindex="0">
+                            <i class="fas fa-wheelchair" aria-hidden="true"></i> Motriz
+                        </div>
+                        <div data-perfil="visual" class="perfil-badge" role="radio" aria-checked="false" tabindex="0">
+                            <i class="fas fa-eye" aria-hidden="true"></i> Visual
+                        </div>
+                        <div data-perfil="auditiva" class="perfil-badge" role="radio" aria-checked="false" tabindex="0">
+                            <i class="fas fa-deaf" aria-hidden="true"></i> Auditiva
+                        </div>
+                        <div data-perfil="cognitiva" class="perfil-badge" role="radio" aria-checked="false" tabindex="0">
+                            <i class="fas fa-brain" aria-hidden="true"></i> Cognitiva
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Mapa -->
+            <section id="tab2" class="section" aria-label="Mapa interactivo con rutas accesibles">
+                <div class="card">
+                    <h2><i class="fas fa-map-marked-alt" aria-hidden="true"></i> 🌐 Mapa inclusivo + Geolocalización</h2>
+                    <p>Ubícate y descubre rutas accesibles en el Valle del Mantaro.</p>
+                    <div class="map-container">
+                        <div id="map" aria-label="Mapa interactivo del Valle del Mantaro"></div>
+                    </div>
+                    <div class="geo-control">
+                        <button id="locateUserBtn" class="btn-primary" aria-label="Obtener mi ubicación actual">
+                            <i class="fas fa-location-dot" aria-hidden="true"></i> Mi ubicación
+                        </button>
+                        <div id="locationStatus" class="location-status" role="status">
+                            <i class="fas fa-info-circle" aria-hidden="true"></i> Activa ubicación para ver rutas accesibles
+                        </div>
+                    </div>
+                    <div class="route-controls">
+                        <select id="destinoSelect" class="destino-select" aria-label="Seleccionar destino turístico">
+                            <option value="">-- Elegir destino accesible --</option>
+                            <option value="convento">Convento de Ocopa (Rampas, audioguías)</option>
+                            <option value="torre">Torre Torre (Sendero firme, braille parcial)</option>
+                            <option value="parque">Parque de la Identidad (Rutas táctiles, pictogramas)</option>
+                        </select>
+                        <button id="traceRouteBtn" class="btn-outline" aria-label="Trazar ruta accesible">
+                            <i class="fas fa-route" aria-hidden="true"></i> Trazar ruta accesible
+                        </button>
+                        <button id="clearRouteBtn" class="btn-outline" aria-label="Limpiar ruta actual">
+                            <i class="fas fa-trash-alt" aria-hidden="true"></i> Limpiar ruta
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Asistente IA -->
+                <div class="card">
+                    <h2><i class="fas fa-robot" aria-hidden="true"></i> Asistente IA inclusivo</h2>
+                    <div class="asistente-card" role="region" aria-label="Recomendaciones del asistente virtual">
+                        <div class="asistente-header">
+                            <i class="fas fa-comment-dots" style="font-size: 1.8rem; color: #2E6F4A;" aria-hidden="true"></i>
+                            <strong>Asistente virtual:</strong>
+                        </div>
+                        <div id="asistenteMensaje" class="asistente-mensaje" role="alert" aria-live="polite">
+                            Selecciona un perfil de accesibilidad para recomendaciones personalizadas.
+                        </div>
+                        <button id="refreshAsistenteBtn" class="btn-outline" aria-label="Generar nueva recomendación">
+                            <i class="fas fa-sync-alt" aria-hidden="true"></i> Generar recomendación
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Sección de Catálogo -->
+            <section id="tab3" class="section" aria-label="Catálogo de destinos turísticos accesibles">
+                <div class="card">
+                    <h2><i class="fas fa-leaf" aria-hidden="true"></i> Destinos con Turismo Responsable</h2>
+                    <div class="destinos-grid" id="destinosGrid"></div>
+                </div>
+            </section>
+        </main>
+
+        <footer role="contentinfo">
+            <p>♿ Mantaro Inclusivo — Turismo accesible para todas las capacidades</p>
+            <p>📍 Valle del Mantaro, Junín — Rutas adaptadas para movilidad reducida, visual y cognitiva</p>
+            <div class="footer-links">
+                <a href="#accesibilidad" aria-label="Declaración de accesibilidad">Declaración de accesibilidad</a> |
+                <a href="#privacidad" aria-label="Política de privacidad">Política de privacidad</a> |
+                <a href="#contacto" aria-label="Contacto">Contacto</a>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <script src="scripts.js"></script>
+</body>
+</html>
