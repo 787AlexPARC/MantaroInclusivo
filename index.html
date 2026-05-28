@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Mantaro Inclusivo | Turismo accesible Valle del Mantaro</title>
+  <!-- Tailwind CSS + Font Awesome Icons (para iconos accesibles) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Personalizar colores: azul profundo, blanco, amarillo -->
+  <style>
+    /* Custom overrides para accesibilidad y estilos adicionales */
+    body {
+      font-size: 16px; /* base legible */
+      line-height: 1.5;
+    }
+    /* alto contraste y focus visible */
+    *:focus-visible {
+      outline: 3px solid #FBBF24;
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+    /* áreas clic 44x44 mínimo */
+    button, a, .clickable, [role="button"], input[type="checkbox"], .tab-btn {
+      min-width: 44px;
+      min-height: 44px;
+      line-height: 1.2;
+    }
+    /* tarjetas interactivas */
+    .card-focus:focus-visible {
+      outline: 3px solid #FBBF24;
+    }
+    /* Banner INDECI animado */
+    @keyframes slideDown {
+      0% { transform: translateY(-100%); opacity: 0; }
+      100% { transform: translateY(0); opacity: 1; }
+    }
+    .banner-emergency {
+      animation: slideDown 0.5s ease-out forwards;
+    }
+    /* scroll suave */
+    html {
+      scroll-behavior: smooth;
+    }
+    /* mapa placeholder estilizado */
+    .map-placeholder {
+      background: #1E3A8A;
+      background-image: radial-gradient(circle at 10% 30%, #2e4a8c 1%, transparent 1%);
+      background-size: 20px 20px;
+    }
+  </style>
+</head>
+<body class="bg-white font-sans antialiased">
+
+  <!-- Banner INDECI emergencia animado (se muestra dinámicamente) -->
+  <div id="emergencyBanner" class="hidden fixed top-0 left-0 w-full bg-red-700 text-white p-3 z-50 text-center shadow-lg banner-emergency" role="alert" aria-live="polite">
+    <div class="container mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2 mx-auto md:mx-0">
+        <span class="font-bold text-lg">⚠️ INDECI - ALERTA</span>
+        <span>Lluvias intensas en zona centro: se recomienda precaución en carreteras. Manténgase informado.</span>
+      </div>
+      <button id="closeBannerBtn" class="bg-yellow-300 text-blue-900 px-3 py-1 rounded font-bold text-sm focus:ring-2 focus:ring-white" aria-label="Cerrar alerta de emergencia">Cerrar</button>
+    </div>
+  </div>
+
+  <main class="max-w-7xl mx-auto px-4 py-5">
+    <!-- Encabezado con sello de Turismo Responsable -->
+    <header class="flex flex-wrap justify-between items-center border-b-4 border-yellow-400 pb-3 mb-6">
+      <div>
+        <h1 class="text-3xl font-extrabold text-blue-900">🌄 Mantaro Inclusivo</h1>
+        <p class="text-gray-700">Turismo accesible para todas las capacidades - Valle del Mantaro, Junín</p>
+      </div>
+      <div class="bg-yellow-100 px-4 py-2 rounded-full text-blue-900 font-semibold text-sm mt-2 sm:mt-0">
+        🏅 Sello "Turismo Responsable"
+      </div>
+    </header>
+
+    <!-- Sistema de pestañas (Registro/Login - Mapa+IA - Catálogo Detalles) -->
+    <div class="flex flex-wrap gap-2 border-b border-gray-200 mb-6" role="tablist" aria-label="Secciones principales">
+      <button id="tabRegisterBtn" class="tab-btn py-2 px-5 font-bold text-blue-900 bg-yellow-300 rounded-t-lg border-b-2 border-yellow-600 transition" data-tab="register" aria-selected="true">🔐 Registro / Login</button>
+      <button id="tabMapBtn" class="tab-btn py-2 px-5 font-bold text-blue-900 hover:bg-gray-100 rounded-t-lg" data-tab="map" aria-selected="false">🗺️ Mapa + Asistente IA</button>
+      <button id="tabCatalogBtn" class="tab-btn py-2 px-5 font-bold text-blue-900 hover:bg-gray-100 rounded-t-lg" data-tab="catalog" aria-selected="false">🏞️ Catálogo de Destinos</button>
+    </div>
+
+    <!-- ========== SECCIÓN 1: REGISTRO (RF1, RF2, RF3, RF4 simulados) ========== -->
+    <div id="registerSection" class="tab-content">
+      <div class="bg-blue-50 rounded-2xl p-6 shadow-md border border-blue-200">
+        <h2 class="text-2xl font-bold text-blue-900 mb-4">📝 Crear cuenta o iniciar sesión</h2>
+        <p class="mb-4 text-gray-700"><strong>RF1, RF2, RF3</strong> - Registro con verificación segura (cifrado AES-256 simulado).</p>
+        
+        <form id="registerForm" class="space-y-5">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="nombre" class="block font-semibold text-blue-900">Nombres *</label>
+              <input type="text" id="nombre" required class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-400" aria-label="Nombres">
+            </div>
+            <div>
+              <label for="apellidos" class="block font-semibold text-blue-900">Apellidos *</label>
+              <input type="text" id="apellidos" required class="w-full p-3 border border-gray-300 rounded-lg" aria-label="Apellidos">
+            </div>
+            <div>
+              <label for="email" class="block font-semibold text-blue-900">Correo electrónico *</label>
+              <input type="email" id="email" required class="w-full p-3 border border-gray-300 rounded-lg" aria-label="Correo electrónico">
+            </div>
+            <div>
+              <label for="telefono" class="block font-semibold text-blue-900">Teléfono *</label>
+              <input type="tel" id="telefono" required class="w-full p-3 border border-gray-300 rounded-lg" aria-label="Teléfono">
+            </div>
+          </div>
+          <div>
+            <label for="password" class="block font-semibold text-blue-900">Contraseña *</label>
+            <input type="password" id="password" required class="w-full p-3 border border-gray-300 rounded-lg" aria-label="Contraseña">
+            <p class="text-xs text-gray-500 mt-1">🔒 Almacenada con cifrado AES-256 (simulación seguridad)</p>
+          </div>
+          <!-- Selector de método de verificación (RF1, RF2, RF3) -->
+          <div>
+            <label for="verificationMethod" class="block font-semibold text-blue-900">Método de verificación 2FA *</label>
+            <select id="verificationMethod" class="w-full p-3 border border-gray-300 rounded-lg bg-white" aria-label="Seleccione método de verificación">
+              <option value="email">📧 Verificación por Email (código OTP)</option>
+              <option value="sms">📱 Verificación por SMS</option>
+              <option value="2fa">🔐 Autenticación 2FA (App Authenticator)</option>
+            </select>
+          </div>
+          <div class="flex flex-wrap gap-4">
+            <button type="submit" class="bg-blue-900 hover:bg-blue-800 text-white font-bold py-3 px-6 rounded-xl transition min-w-[44px] shadow">Registrarse / Iniciar sesión</button>
+            <button type="button" id="forgotPasswordBtn" class="bg-yellow-300 hover:bg-yellow-400 text-blue-900 font-bold py-3 px-6 rounded-xl transition min-w-[44px]">¿Olvidaste tu contraseña? (RF4)</button>
+          </div>
+        </form>
+        <div id="regMessage" class="mt-4 p-3 rounded-lg hidden"></div>
+        <p class="text-xs text-gray-500 mt-3">* Simulación de autenticación con cifrado AES-256 y verificación en segundo plano.</p>
+      </div>
+
+      <!-- Filtrado de discapacidad (RF9) Sección 2 integrada debajo del registro (por regla 1-2-3: sección 2 aparece igualmente) -->
+      <div class="mt-8 bg-white border-2 border-yellow-200 rounded-2xl p-5">
+        <h2 class="text-xl font-bold text-blue-900 mb-3">🧩 Elige tu perfil de accesibilidad (RF9)</h2>
+        <p class="mb-4 text-gray-600">Selecciona tu tipo de discapacidad para personalizar recomendaciones y mapa.</p>
+        <div class="flex flex-wrap gap-4 justify-center md:justify-start" id="accessibilityFilters" role="radiogroup" aria-label="Tipo de discapacidad">
+          <button data-filter="motriz" class="filter-btn bg-gray-100 hover:bg-yellow-200 p-4 rounded-2xl flex flex-col items-center w-28 h-28 justify-center shadow transition focus:ring-2" aria-label="Discapacidad Motriz"><span class="text-4xl">🦽</span><span class="font-bold mt-1">Motriz</span></button>
+          <button data-filter="visual" class="filter-btn bg-gray-100 hover:bg-yellow-200 p-4 rounded-2xl flex flex-col items-center w-28 h-28 justify-center shadow transition" aria-label="Discapacidad Visual"><span class="text-4xl">👁️‍🗨️</span><span class="font-bold mt-1">Visual</span></button>
+          <button data-filter="auditiva" class="filter-btn bg-gray-100 hover:bg-yellow-200 p-4 rounded-2xl flex flex-col items-center w-28 h-28 justify-center shadow transition" aria-label="Discapacidad Auditiva"><span class="text-4xl">🦻</span><span class="font-bold mt-1">Auditiva</span></button>
+          <button data-filter="cognitiva" class="filter-btn bg-gray-100 hover:bg-yellow-200 p-4 rounded-2xl flex flex-col items-center w-28 h-28 justify-center shadow transition" aria-label="Discapacidad Cognitiva"><span class="text-4xl">🧠</span><span class="font-bold mt-1">Cognitiva</span></button>
+        </div>
+        <div id="filterFeedback" class="mt-4 text-sm text-blue-800 italic"></div>
+      </div>
+    </div>
+
+    <!-- ========== SECCIÓN 2 (MAP + IA) ========== -->
+    <div id="mapSection" class="tab-content hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Mapa simulado con Google Maps API (integración contenedor) RF5 -->
+        <div class="lg:col-span-2">
+          <div class="bg-gray-200 rounded-xl overflow-hidden shadow-lg border border-blue-200">
+            <div class="bg-blue-900 text-white px-4 py-2 font-bold">📍 Mapa interactivo - Huancayo (RF5)</div>
+            <!-- Contenedor simulado de Google Maps (API key demo, centrado Huancayo) -->
+            <div id="googleMapContainer" class="map-placeholder w-full h-96 relative flex items-center justify-center text-white text-center">
+              <div class="bg-black bg-opacity-50 p-4 rounded-lg">
+                <p class="font-bold">🗺️ Google Maps - Huancayo, Valle del Mantaro</p>
+                <p class="text-sm">API integrada (simulación de mapa real)<br>📍 -12.0681, -75.2102</p>
+                <p class="text-xs mt-2">* Entorno demo: puntos de interés accesibles disponibles</p>
+              </div>
+            </div>
+            <div class="p-2 text-xs text-gray-500">Visualización centrada en Plaza Constitución, Huancayo.</div>
+          </div>
+        </div>
+        <!-- Asistente IA (RF7) -->
+        <div class="bg-gradient-to-br from-blue-100 to-yellow-50 rounded-xl p-5 shadow-md border border-yellow-300">
+          <div class="flex items-center gap-2 mb-3">
+            <span class="text-3xl">🤖</span>
+            <h3 class="text-xl font-bold text-blue-900">Asistente IA Inclusivo</h3>
+          </div>
+          <div id="iaMessageBox" class="bg-white p-4 rounded-lg border-l-8 border-yellow-400 shadow-inner min-h-[120px]">
+            <p id="iaMessageText" class="text-gray-800">Hola, selecciona un perfil de accesibilidad para obtener recomendaciones personalizadas.</p>
+          </div>
+          <p class="text-xs text-gray-600 mt-3 italic">Basado en inteligencia contextual y condiciones de accesibilidad en tiempo real.</p>
+        </div>
+      </div>
+      <!-- Simulación cambio de mapa según discapacidad (RF9 ya aplica cambio mensaje IA) -->
+      <div class="mt-4 p-2 text-center text-sm text-blue-800 bg-blue-50 rounded-lg">
+        💡 Al cambiar el filtro de accesibilidad (arriba o en pestaña registro), el asistente IA actualiza rutas recomendadas.
+      </div>
+    </div>
+
+    <!-- ========== SECCIÓN 3: CATÁLOGO Y DETALLE (RF6, RF8) ========== -->
+    <div id="catalogSection" class="tab-content hidden">
+      <div class="mb-5">
+        <h2 class="text-2xl font-bold text-blue-900">🏆 Destinos con Turismo Responsable (RF6)</h2>
+        <p class="text-gray-700">Sello de calidad accesible y checklist de servicios inclusivos (RF8).</p>
+      </div>
+      <div id="catalogGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Tarjetas dinámicas desde JS -->
+      </div>
+    </div>
+  </main>
+
+  <footer class="bg-blue-900 text-white mt-12 py-6 text-center text-sm">
+    <p>♿ Mantaro Inclusivo - Turismo accesible para todas las personas | Valle del Mantaro, Perú</p>
+    <p class="mt-1">✅ Cumple con WCAG 2.1 Nivel AA - Contraste alto, navegación por teclado y etiquetas ARIA.</p>
+  </footer>
+
+  <script>
+    // ========== HELPER FUNCIONES Y DATOS ==========
+    // Catálogo de destinos (RF6, RF8)
+    const destinations = [
+      { name: "Convento de Ocopa", description: "Museo y convento histórico con rampas certificadas.", seal: "Turismo Responsable", services: ["Rampas nivel A", "Baños accesibles", "Estacionamiento reservado"], audioGuide: true, imageIcon: "⛪" },
+      { name: "Torre Torre", description: "Formaciones rocosas únicas, senderos adaptados para silla de ruedas.", seal: "Turismo Responsable", services: ["Sendero firme", "Señalización braille (parcial)", "Mirador accesible"], audioGuide: false, imageIcon: "🗻" },
+      { name: "Parque de la Identidad Huanca", description: "Recorrido cultural con audioguías y pictogramas.", seal: "Turismo Responsable", services: ["Audio-guías", "Rutas táctiles", "Personal capacitado"], audioGuide: true, imageIcon: "🎨" }
+    ];
+
+    // Función renderizar catálogo
+    function renderCatalog() {
+      const container = document.getElementById('catalogGrid');
+      if (!container) return;
+      container.innerHTML = destinations.map(dest => `
+        <div class="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden hover:shadow-xl transition card-focus" tabindex="0" aria-label="Destino: ${dest.name}">
+          <div class="bg-yellow-300 px-4 py-2 font-bold text-blue-900 flex justify-between items-center">
+            <span>${dest.imageIcon} ${dest.name}</span>
+            <span class="bg-blue-900 text-yellow-300 text-xs px-2 py-1 rounded-full">🏅 ${dest.seal}</span>
+          </div>
+          <div class="p-4">
+            <p class="text-gray-700">${dest.description}</p>
+            <div class="mt-3"><strong class="text-blue-900">✅ Checklist servicios (RF8):</strong>
+              <ul class="list-disc list-inside text-sm mt-1" aria-label="Servicios de accesibilidad">
+                ${dest.services.map(s => `<li>${s}</li>`).join('')}
+                ${dest.audioGuide ? '<li>🎧 Audio-guías disponibles</li>' : '<li>🔇 Audio-guías no disponible, hay alternativas visuales</li>'}
+              </ul>
+            </div>
+            <button class="mt-4 w-full bg-blue-900 text-white py-2 rounded-lg font-bold text-sm hover:bg-blue-800 transition focus:ring-2" aria-label="Ver detalles de ${dest.name}">Ver detalles</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Simulación de cambio de filtro discapacidad + actualizar asistente IA (RF7 + RF9)
+    let currentDisability = "motriz"; // default
+
+    function updateIAMessage(disability) {
+      const iaMsg = document.getElementById('iaMessageText');
+      let message = "";
+      switch(disability) {
+        case "motriz":
+          message = "🦽 Hola, basado en tu perfil de movilidad reducida, te recomiendo la ruta hacia el Convento de Ocopa; cuenta con rampas certificadas y acceso nivel A hoy. Además, Torre Torre cuenta con sendero firme.";
+          break;
+        case "visual":
+          message = "👁️‍🗨️ Para discapacidad visual, el Parque de la Identidad Huanca ofrece rutas táctiles y audioguías. El Convento de Ocopa tiene señalización en braille parcial. Te sugerimos ir acompañado de guía capacitado.";
+          break;
+        case "auditiva":
+          message = "🦻 Para personas con discapacidad auditiva: todos los destinos cuentan con material visual y personal entrenado en LSA básico. El museo ofrece pantallas con subtítulos.";
+          break;
+        case "cognitiva":
+          message = "🧠 Recomendamos recorridos con pictogramas en el Parque de la Identidad y señalización simplificada. Horarios con menor flujo de público para mayor comodidad.";
+          break;
+        default: message = "Selecciona una categoría de accesibilidad para recomendaciones inteligentes.";
+      }
+      if(iaMsg) iaMsg.innerText = message;
+      // simular cambio de mapa / filtro (RF9) en mapa - cambiamos texto de contexto
+      const mapDiv = document.getElementById('googleMapContainer');
+      if(mapDiv) {
+        let mapHint = "";
+        if(disability === "motriz") mapHint = "♿ Mapa adaptado: rutas sin escaleras, rampas en puntos clave.";
+        else if(disability === "visual") mapHint = "🔊 Mapa con descripciones sonoras simuladas (próximamente integración TalkBack).";
+        else if(disability === "auditiva") mapHint = "👂 Indicaciones visuales y alertas luminosas simuladas.";
+        else mapHint = "🧩 Mapa simplificado con íconos grandes y rutas predecibles.";
+        mapDiv.innerHTML = `<div class="bg-black bg-opacity-50 p-4 rounded-lg text-center"><p class="font-bold">🗺️ Google Maps - Huancayo</p><p class="text-sm">📍 Centro Histórico</p><p class="text-xs mt-2">Filtro activo: ${disability} - ${mapHint}</p><p class="text-xs">* Demo API integración</p></div>`;
+      }
+      // Guardar feedback visual
+      const filterFeedback = document.getElementById('filterFeedback');
+      if(filterFeedback) filterFeedback.innerText = `✅ Filtro activo: ${disability.toUpperCase()} - Contenido del mapa y recomendaciones adaptadas (RF9).`;
+    }
+
+    // Manejador de selección de filtros
+    function initFilterButtons() {
+      const btns = document.querySelectorAll('.filter-btn');
+      btns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const filter = btn.getAttribute('data-filter');
+          if(filter) {
+            currentDisability = filter;
+            updateIAMessage(currentDisability);
+            // resaltar botón activo visualmente
+            btns.forEach(b => b.classList.remove('bg-yellow-300', 'ring-2', 'ring-yellow-500'));
+            btn.classList.add('bg-yellow-300', 'ring-2', 'ring-yellow-500');
+          }
+        });
+      });
+      // Activar por defecto "Motriz"
+      const defaultBtn = document.querySelector('.filter-btn[data-filter="motriz"]');
+      if(defaultBtn) defaultBtn.classList.add('bg-yellow-300', 'ring-2', 'ring-yellow-500');
+      updateIAMessage("motriz");
+    }
+
+    // Pestañas (Registro/Login, Mapa, Catálogo)
+    function initTabs() {
+      const tabRegister = document.getElementById('tabRegisterBtn');
+      const tabMap = document.getElementById('tabMapBtn');
+      const tabCatalog = document.getElementById('tabCatalogBtn');
+      const sections = {
+        register: document.getElementById('registerSection'),
+        map: document.getElementById('mapSection'),
+        catalog: document.getElementById('catalogSection')
+      };
+      function activateTab(tabId) {
+        Object.keys(sections).forEach(key => {
+          sections[key].classList.add('hidden');
+        });
+        sections[tabId].classList.remove('hidden');
+        // actualizar estilos de botones aria-selected
+        [tabRegister, tabMap, tabCatalog].forEach(btn => {
+          const isActive = (tabId === 'register' && btn === tabRegister) || 
+                          (tabId === 'map' && btn === tabMap) ||
+                          (tabId === 'catalog' && btn === tabCatalog);
+          if(isActive) {
+            btn.setAttribute('aria-selected', 'true');
+            btn.classList.add('bg-yellow-300', 'border-b-2', 'border-yellow-600');
+            btn.classList.remove('bg-gray-100');
+          } else {
+            btn.setAttribute('aria-selected', 'false');
+            btn.classList.remove('bg-yellow-300', 'border-b-2', 'border-yellow-600');
+            btn.classList.add('bg-gray-100');
+          }
+        });
+      }
+      tabRegister.addEventListener('click', () => activateTab('register'));
+      tabMap.addEventListener('click', () => activateTab('map'));
+      tabCatalog.addEventListener('click', () => { activateTab('catalog'); renderCatalog(); });
+      activateTab('register');
+    }
+
+    // Simulación registro + verificación y mención AES-256
+    const registerForm = document.getElementById('registerForm');
+    const regMessageDiv = document.getElementById('regMessage');
+    if(registerForm) {
+      registerForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nombre = document.getElementById('nombre').value;
+        const apellidos = document.getElementById('apellidos').value;
+        const email = document.getElementById('email').value;
+        const telefono = document.getElementById('telefono').value;
+        const password = document.getElementById('password').value;
+        const method = document.getElementById('verificationMethod').value;
+        if(!nombre || !apellidos || !email || !telefono || !password) {
+          showMessage("⚠️ Completa todos los campos obligatorios.", "red");
+          return;
+        }
+        // Simular cifrado AES-256 (solo conceptual)
+        let simulatedEncrypted = btoa(`AES-256||${password}||salt`).substring(0,20)+"...";
+        showMessage(`✅ Registro exitoso (simulado). Usuario: ${nombre} ${apellidos}. Credenciales almacenadas con cifrado ${simulatedEncrypted}. Se enviará código de verificación vía ${method === 'email' ? 'correo' : (method === 'sms' ? 'SMS' : 'App 2FA')}. (RF1,RF2,RF3)`, "green");
+        // Opcional: limpiar
+      });
+    }
+
+    // Recuperación de contraseña (RF4)
+    const forgotBtn = document.getElementById('forgotPasswordBtn');
+    if(forgotBtn) {
+      forgotBtn.addEventListener('click', () => {
+        const emailInput = document.getElementById('email').value;
+        if(emailInput && emailInput.includes('@')) {
+          showMessage(`📧 Se ha enviado un enlace de restablecimiento de contraseña al correo ${emailInput} (simulación RF4)`, "blue");
+        } else {
+          showMessage("📝 Por favor ingresa un correo electrónico válido en el campo de correo para recuperar contraseña.", "orange");
+        }
+      });
+    }
+
+    function showMessage(msg, type) {
+      if(regMessageDiv) {
+        regMessageDiv.classList.remove('hidden');
+        regMessageDiv.innerText = msg;
+        regMessageDiv.className = `mt-4 p-3 rounded-lg ${type === 'red' ? 'bg-red-100 text-red-800' : (type === 'green' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800')}`;
+        setTimeout(() => { if(regMessageDiv) regMessageDiv.classList.add('hidden'); }, 5000);
+      } else {
+        alert(msg);
+      }
+    }
+
+    // Banner INDECI emergencia (simulado animado)
+    let emergencyActive = false;
+    function showEmergencyBanner() {
+      const banner = document.getElementById('emergencyBanner');
+      if(banner) {
+        banner.classList.remove('hidden');
+        emergencyActive = true;
+      }
+    }
+    const closeBanner = document.getElementById('closeBannerBtn');
+    if(closeBanner) {
+      closeBanner.addEventListener('click', () => {
+        const banner = document.getElementById('emergencyBanner');
+        if(banner) banner.classList.add('hidden');
+        emergencyActive = false;
+      });
+    }
+    // Simular alerta INDECI después de 2 segundos de carga (como aviso activo)
+    setTimeout(() => {
+      showEmergencyBanner();
+    }, 2000);
+
+    // Al cambiar entre pestañas si mapa se actualiza según filtro actual
+    document.getElementById('tabMapBtn')?.addEventListener('click', () => {
+      updateIAMessage(currentDisability);
+    });
+
+    // Inicializar cuando DOM cargue
+    document.addEventListener('DOMContentLoaded', () => {
+      initTabs();
+      initFilterButtons();
+      renderCatalog(); // precarga catálogo
+      // Asegurar mensaje IA en Mapa al inicio
+      if(document.getElementById('mapSection')) {
+        updateIAMessage(currentDisability);
+      }
+      // Descripción ARIA adicional a los filtros
+      const filterGroup = document.getElementById('accessibilityFilters');
+      if(filterGroup) filterGroup.setAttribute('aria-label', "Seleccione su tipo de discapacidad para personalizar la experiencia (RF9)");
+    });
+  </script>
+</body>
+</html>

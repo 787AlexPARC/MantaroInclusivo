@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Mantaro Inclusivo | Turismo Accesible en el Valle del Mantaro</title>
+  <!-- Fuentes modernas -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <!-- Leaflet CSS (mapa open source) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Leaflet Routing Machine para rutas -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #F9F7F3;
+      font-family: 'Inter', 'Plus Jakarta Sans', system-ui, sans-serif;
+      color: #1E2A2F;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1rem 1.5rem 3rem;
+    }
+
+    /* Alerta INDECI */
+    .alert-bar {
+      background-color: #FCE7D9;
+      border-left: 6px solid #D9534F;
+      color: #A33C2E;
+      padding: 0.9rem 1.5rem;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .btn-close-alert {
+      background: none;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      color: #A33C2E;
+      padding: 0.3rem 0.9rem;
+      border-radius: 40px;
+    }
+
+    /* Header con logo */
+    .site-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      gap: 1rem;
+    }
+    .logo-area h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #2C6E49, #4C9A6E);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+    .tagline {
+      color: #4F6F5E;
+      font-weight: 500;
+      border-left: 3px solid #7AB87F;
+      padding-left: 0.8rem;
+      margin-top: 0.25rem;
+      font-size: 0.95rem;
+    }
+    .logo-image img {
+      max-height: 70px;
+      width: auto;
+      border-radius: 20px;
+      object-fit: contain;
+    }
+
+    /* Navegación */
+    .nav-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin: 1.5rem 0 2rem;
+      background: #FFFFFFCC;
+      backdrop-filter: blur(4px);
+      padding: 0.5rem;
+      border-radius: 60px;
+      border: 1px solid #E2E8DE;
+    }
+    .nav-btn {
+      background: transparent;
+      border: none;
+      padding: 0.75rem 1.6rem;
+      font-weight: 600;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #2C4B3E;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+    }
+    .nav-btn.active {
+      background: #2E6F4A;
+      color: white;
+    }
+    .nav-btn:hover:not(.active) {
+      background-color: #E9F0EB;
+    }
+
+    /* Secciones */
+    .section {
+      display: none;
+      animation: fade 0.25s ease;
+    }
+    .section.active-section {
+      display: block;
+    }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(5px);}
+      to { opacity: 1; transform: translateY(0);}
+    }
+
+    /* Tarjetas */
+    .card {
+      background: #FFFFFF;
+      border-radius: 28px;
+      padding: 1.8rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.03);
+      border: 1px solid #EFF3EA;
+      margin-bottom: 2rem;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.2rem;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #2D4A3B;
+    }
+    input, select {
+      padding: 0.8rem 1rem;
+      border-radius: 18px;
+      border: 1.5px solid #DDE4DE;
+      background: #FEFEF9;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: #2E6F4A;
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 0.8rem 1.8rem;
+      border-radius: 40px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+    }
+    .btn-primary:hover {
+      background: #1F543B;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid #BDD3C2;
+      padding: 0.6rem 1.4rem;
+      border-radius: 40px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .perfiles-accesibilidad {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+    .perfil-badge {
+      background: #F1F5EF;
+      border-radius: 60px;
+      padding: 0.5rem 1.2rem;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .perfil-badge.selected {
+      background: #2E6F4A;
+      color: white;
+    }
+    .destinos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.8rem;
+      margin-top: 1rem;
+    }
+    .destino-card {
+      background: #FFFFFF;
+      border-radius: 28px;
+      padding: 1.5rem;
+      border: 1px solid #E5EDE4;
+    }
+    .destino-card h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.75rem;
+      color: #1F3D31;
+    }
+    .checklist {
+      background: #F9FBF7;
+      padding: 0.8rem;
+      border-radius: 20px;
+      margin: 1rem 0;
+      font-size: 0.85rem;
+    }
+    .asistente-card {
+      background: #F2F6F0;
+      border-radius: 28px;
+      padding: 1.8rem;
+      margin-top: 1rem;
+    }
+    /* Mapa */
+    .map-container {
+      margin-top: 1.5rem;
+      border-radius: 28px;
+      overflow: hidden;
+      border: 1px solid #E2E8DE;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    #map {
+      height: 450px;
+      width: 100%;
+      background: #e0e7e0;
+    }
+    .geo-control {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .location-status {
+      font-size: 0.85rem;
+      color: #4F6F5E;
+      background: #F0F4ED;
+      padding: 0.4rem 1rem;
+      border-radius: 40px;
+    }
+    .route-controls {
+      margin-top: 1rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      align-items: center;
+    }
+    .destino-select {
+      padding: 0.5rem 1rem;
+      border-radius: 40px;
+      border: 1.5px solid #BDD3C2;
+      background: white;
+      font-family: inherit;
+    }
+    footer {
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: #6C7E74;
+      border-top: 1px solid #DFE7DF;
+      padding-top: 2rem;
+    }
+    @media (max-width: 680px) {
+      .container { padding: 1rem; }
+      .nav-btn { padding: 0.5rem 1rem; font-size: 0.8rem; }
+      .logo-area h1 { font-size: 1.6rem; }
+      .logo-image img { max-height: 55px; }
+    }
+    button:focus-visible {
+      outline: 3px solid #2C6E49;
+      outline-offset: 2px;
+    }
+    .leaflet-routing-container {
+      display: none !important; /* Opcional: ocultar panel de instrucciones para diseño limpio */
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Alerta INDECI -->
+  <div id="alertIndeci" class="alert-bar">
+    <div class="alert-text">
+      <i class="fas fa-cloud-showers-heavy"></i>
+      <span><strong>INDECI - ALERTA:</strong> Lluvias intensas en zona centro: se recomienda precaución en carreteras. Manténgase informado.</span>
+    </div>
+    <button class="btn-close-alert" id="closeAlertBtn">Cerrar <i class="fas fa-times-circle"></i></button>
+  </div>
+
+  <!-- Header con logo -->
+  <div class="site-header">
+    <div class="logo-area">
+      <h1>🌄 Mantaro Inclusivo</h1>
+      <div class="tagline">Turismo accesible para todas las capacidades · Valle del Mantaro, Junín</div>
+    </div>
+    <div class="logo-image">
+      <img src="logo1.jpg" alt="Logo Mantaro Inclusivo" onerror="this.onerror=null; this.src='https://placehold.co/200x80?text=Mantaro+Inclusivo';">
+    </div>
+  </div>
+
+  <!-- Navegación -->
+  <div class="nav-tabs" role="tablist">
+    <button class="nav-btn active" data-tab="tab1"><i class="fas fa-user-plus"></i> Registro / Login</button>
+    <button class="nav-btn" data-tab="tab2"><i class="fas fa-map-marked-alt"></i> Mapa + Asistente IA</button>
+    <button class="nav-btn" data-tab="tab3"><i class="fas fa-umbrella-beach"></i> Catálogo de Destinos</button>
+  </div>
+
+  <!-- SECCIÓN 1 -->
+  <div id="tab1" class="section active-section">
+    <div class="card">
+      <h2><i class="fas fa-id-card"></i> Crear cuenta o iniciar sesión</h2>
+      <div class="form-grid">
+        <div class="input-group"><label>Nombres</label><input type="text" placeholder="Ej: Ana María"></div>
+        <div class="input-group"><label>Apellidos</label><input type="text" placeholder="Apellidos"></div>
+        <div class="input-group"><label>Correo electrónico</label><input type="email" placeholder="usuario@ejemplo.com"></div>
+        <div class="input-group"><label>Teléfono</label><input type="tel" placeholder="+51 999 888 777"></div>
+        <div class="input-group"><label>Contraseña</label><input type="password" placeholder="••••••"></div>
+        <div class="input-group"><label>Método de verificación</label><select><option>Seleccione Verificación</option><option>Verificación por email</option><option>Verificación por SMS</option><option>Autenticación 2FA</option></select></div>
+      </div>
+      <div style="display: flex; gap: 1rem; margin-top: 1.8rem;">
+        <button class="btn-primary"><i class="fas fa-registered"></i> Registrarse</button>
+        <button class="btn-outline"><i class="fas fa-key"></i> ¿Olvidaste tu contraseña?</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3><i class="fas fa-universal-access"></i> Elige tu perfil de accesibilidad</h3>
+      <p>Personaliza las recomendaciones del mapa y asistente IA según tu discapacidad.</p>
+      <div class="perfiles-accesibilidad" id="perfilesContainer">
+        <div data-perfil="motriz" class="perfil-badge"><i class="fas fa-wheelchair"></i> Motriz</div>
+        <div data-perfil="visual" class="perfil-badge"><i class="fas fa-eye"></i> Visual</div>
+        <div data-perfil="auditiva" class="perfil-badge"><i class="fas fa-deaf"></i> Auditiva</div>
+        <div data-perfil="cognitiva" class="perfil-badge"><i class="fas fa-brain"></i> Cognitiva</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 2: MAPA con OpenStreetMap y rutas accesibles -->
+  <div id="tab2" class="section">
+    <div class="card">
+      <h2><i class="fas fa-map-marked-alt"></i> 🌐 Mapa inclusivo + Geolocalización</h2>
+      <p>Ubícate y descubre rutas accesibles en el Valle del Mantaro. Selecciona un destino para trazar una ruta adaptada desde tu ubicación.</p>
+      <div class="map-container">
+        <div id="map"></div>
+      </div>
+      <div class="geo-control">
+        <button id="locateUserBtn" class="btn-primary"><i class="fas fa-location-dot"></i> Mi ubicación</button>
+        <div id="locationStatus" class="location-status"><i class="fas fa-info-circle"></i> Activa ubicación para ver rutas accesibles</div>
+      </div>
+      <div class="route-controls">
+        <select id="destinoSelect" class="destino-select">
+          <option value="">-- Elegir destino accesible --</option>
+          <option value="convento">Convento de Ocopa (Rampas, audioguías)</option>
+          <option value="torre">Torre Torre (Sendero firme, braille parcial)</option>
+          <option value="parque">Parque de la Identidad (Rutas táctiles, pictogramas)</option>
+        </select>
+        <button id="traceRouteBtn" class="btn-outline"><i class="fas fa-route"></i> Trazar ruta accesible</button>
+        <button id="clearRouteBtn" class="btn-outline"><i class="fas fa-trash-alt"></i> Limpiar ruta</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2><i class="fas fa-robot"></i> Asistente IA inclusivo</h2>
+      <div class="asistente-card">
+        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+          <i class="fas fa-comment-dots" style="font-size: 1.8rem; color: #2E6F4A;"></i>
+          <strong>Asistente virtual:</strong> 
+          <span id="asistenteMensaje">Selecciona un perfil de accesibilidad para recomendaciones personalizadas.</span>
+        </div>
+        <button id="refreshAsistenteBtn" class="btn-outline" style="margin-top: 1rem;"><i class="fas fa-sync-alt"></i> Generar recomendación</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN 3: CATÁLOGO -->
+  <div id="tab3" class="section">
+    <div class="card">
+      <h2><i class="fas fa-leaf"></i> Destinos con Turismo Responsable</h2>
+      <div class="destinos-grid">
+        <div class="destino-card">
+          <h3>Convento de Ocopa</h3>
+          <p>Museo y convento histórico con rampas certificadas.</p>
+          <div class="checklist"><i class="fas fa-check-circle"></i> Rampas nivel A<br><i class="fas fa-check-circle"></i> Baños accesibles<br><i class="fas fa-check-circle"></i> Estacionamiento reservado<br><i class="fas fa-check-circle"></i> Audio-guías disponibles</div>
+          <button class="btn-primary ver-detalles">Ver detalles</button>
+        </div>
+        <div class="destino-card">
+          <h3>Torre Torre</h3>
+          <p>Formaciones rocosas únicas, senderos adaptados para silla de ruedas.</p>
+          <div class="checklist"><i class="fas fa-check-circle"></i> Sendero firme<br><i class="fas fa-check-circle"></i> Señalización braille (parcial)<br><i class="fas fa-check-circle"></i> Mirador accesible<br><i class="fas fa-times-circle"></i> Audio-guías no disponible</div>
+          <button class="btn-primary ver-detalles">Ver detalles</button>
+        </div>
+        <div class="destino-card">
+          <h3>Parque de la Identidad Huanca</h3>
+          <p>Recorrido cultural con audioguías y pictogramas.</p>
+          <div class="checklist"><i class="fas fa-check-circle"></i> Audio-guías<br><i class="fas fa-check-circle"></i> Rutas táctiles<br><i class="fas fa-check-circle"></i> Personal capacitado<br><i class="fas fa-check-circle"></i> Pictogramas inclusivos</div>
+          <button class="btn-primary ver-detalles">Ver detalles</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>♿ Mantaro Inclusivo — Turismo accesible para todas las capacidades. Mapa interactivo con rutas inclusivas</p>
+    <p>📍 Valle del Mantaro, Junín — Datos de rutas adaptadas para movilidad reducida, visual y cognitiva</p>
+  </footer>
+</div>
+
+<script>
+  // ==================== MAPA CON LEAFLET Y RUTAS ACCESIBLES ====================
+  let map;
+  let userMarker = null;
+  let currentRoutingControl = null;
+  let userPosition = null;
+  
+  // Coordenadas reales de los destinos turísticos en el Valle del Mantaro (Huancayo)
+  const destinosCoords = {
+    convento: { lat: -12.1246, lng: -75.2345, name: "Convento de Ocopa", accesibilidad: "Rampas, baños adaptados, audioguías" },
+    torre: { lat: -12.0691, lng: -75.2167, name: "Torre Torre", accesibilidad: "Sendero firme, señalización braille parcial" },
+    parque: { lat: -12.0699, lng: -75.2105, name: "Parque de la Identidad Huanca", accesibilidad: "Rutas táctiles, pictogramas, personal capacitado" }
+  };
+  
+  function initMap() {
+    // Centro en Huancayo / Valle del Mantaro
+    const centerMap = { lat: -12.0691, lng: -75.2167 };
+    map = L.map('map').setView([centerMap.lat, centerMap.lng], 13);
+    
+    // Capa de mapa base (OpenStreetMap)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> & CartoDB',
+      subdomains: 'abcd',
+      maxZoom: 19,
+      minZoom: 10
+    }).addTo(map);
+    
+    // Agregar marcadores de destinos accesibles
+    Object.keys(destinosCoords).forEach(key => {
+      const d = destinosCoords[key];
+      const marker = L.marker([d.lat, d.lng], {
+        icon: L.divIcon({
+          className: 'custom-marker',
+          html: '<i class="fas fa-wheelchair" style="background:#2E6F4A; color:white; padding:8px; border-radius:50%; font-size:14px; border:2px solid white;"></i>',
+          iconSize: [30, 30],
+          popupAnchor: [0, -15]
+        })
+      }).addTo(map);
+      marker.bindPopup(`
+        <b>${d.name}</b><br>
+        ♿ ${d.accesibilidad}<br>
+        <i>Destino turístico accesible</i>
+      `);
+    });
+    
+    // Agregar también marcadores personalizados con icono de accesibilidad
+    L.marker([-12.1246, -75.2345]).bindPopup("🏛️ Convento de Ocopa<br>♿ Rampas, baños accesibles, audioguías").addTo(map);
+    L.marker([-12.0691, -75.2167]).bindPopup("🗿 Torre Torre<br>♿ Sendero firme, mirador accesible").addTo(map);
+    L.marker([-12.0699, -75.2105]).bindPopup("🎨 Parque de la Identidad<br>♿ Rutas táctiles, pictogramas").addTo(map);
+  }
+  
+  // Inicializar mapa cuando la página cargue
+  document.addEventListener('DOMContentLoaded', () => {
+    initMap();
+  });
+  
+  // Geolocalización del usuario
+  const locateBtn = document.getElementById('locateUserBtn');
+  const locationStatus = document.getElementById('locationStatus');
+  
+  function getUserLocation() {
+    if (!navigator.geolocation) {
+      locationStatus.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Geolocalización no soportada';
+      return;
+    }
+    locationStatus.innerHTML = '<i class="fas fa-spinner fa-pulse"></i> Obteniendo ubicación...';
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        userPosition = { lat: position.coords.latitude, lng: position.coords.longitude };
+        if (userMarker) {
+          map.removeLayer(userMarker);
+        }
+        userMarker = L.marker([userPosition.lat, userPosition.lng], {
+          icon: L.divIcon({
+            className: 'user-marker',
+            html: '<i class="fas fa-map-marker-alt" style="color:#2563EB; font-size:28px; filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));"></i>',
+            iconSize: [28, 28],
+            popupAnchor: [0, -14]
+          })
+        }).addTo(map);
+        userMarker.bindPopup("<b>Tu ubicación</b><br>Aquí estás actualmente").openPopup();
+        map.setView([userPosition.lat, userPosition.lng], 14);
+        locationStatus.innerHTML = '<i class="fas fa-check-circle"></i> Ubicación obtenida correctamente. Ahora puedes trazar rutas accesibles.';
+      },
+      (error) => {
+        let msg = "No se pudo obtener ubicación. ";
+        if (error.code === 1) msg += "Permiso denegado. Activa ubicación en tu navegador.";
+        else msg += "Intenta recargar la página.";
+        locationStatus.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${msg}`;
+      }
+    );
+  }
+  
+  locateBtn.addEventListener('click', getUserLocation);
+  
+  // Función para trazar ruta accesible (usando Leaflet Routing Machine con OSRM)
+  function traceRoute(destinoKey) {
+    if (!userPosition) {
+      alert("Primero haz clic en 'Mi ubicación' para que podamos trazar la ruta desde donde estás.");
+      return;
+    }
+    const destino = destinosCoords[destinoKey];
+    if (!destino) return;
+    
+    // Eliminar ruta anterior si existe
+    if (currentRoutingControl) {
+      map.removeControl(currentRoutingControl);
+    }
+    
+    // Crear nueva ruta (evita autopan excesivo)
+    currentRoutingControl = L.Routing.control({
+      waypoints: [
+        L.latLng(userPosition.lat, userPosition.lng),
+        L.latLng(destino.lat, destino.lng)
+      ],
+      routeWhileDragging: false,
+      showAlternatives: false,
+      lineOptions: {
+        styles: [{ color: '#2E6F4A', weight: 6, opacity: 0.8, dashArray: '10, 8' }] // línea punteada amigable
+      },
+      altLineOptions: { styles: [{ color: '#4C9A6E', weight: 4 }] },
+      router: L.Routing.osrmv1({
+        serviceUrl: 'https://router.project-osrm.org/route/v1'
+      }),
+      createMarker: function() { return null; }, // no crear marcadores extra
+      addWaypoints: false,
+      draggableWaypoints: false,
+      fitSelectedRoutes: true,
+      show: false  // ocultar panel de instrucciones para diseño limpio
+    }).addTo(map);
+    
+    locationStatus.innerHTML = `<i class="fas fa-route"></i> Ruta trazada hacia ${destino.name}. La línea verde muestra el camino accesible.`;
+    
+    // Popup con info de accesibilidad en el destino
+    setTimeout(() => {
+      const destMarker = L.marker([destino.lat, destino.lng]).addTo(map);
+      destMarker.bindPopup(`
+        <b>${destino.name}</b><br>
+        ♿ ${destino.accesibilidad}<br>
+        ✅ Ruta calculada desde tu posición actual
+      `).openPopup();
+      setTimeout(() => map.removeLayer(destMarker), 5000);
+    }, 1000);
+  }
+  
+  // Botón trazar ruta
+  const traceBtn = document.getElementById('traceRouteBtn');
+  const destinoSelect = document.getElementById('destinoSelect');
+  const clearRouteBtn = document.getElementById('clearRouteBtn');
+  
+  traceBtn.addEventListener('click', () => {
+    const selected = destinoSelect.value;
+    if (!selected) {
+      alert("Selecciona un destino accesible del menú.");
+      return;
+    }
+    traceRoute(selected);
+  });
+  
+  clearRouteBtn.addEventListener('click', () => {
+    if (currentRoutingControl) {
+      map.removeControl(currentRoutingControl);
+      currentRoutingControl = null;
+      locationStatus.innerHTML = '<i class="fas fa-info-circle"></i> Ruta eliminada. Puedes trazar una nueva ruta.';
+    } else {
+      locationStatus.innerHTML = '<i class="fas fa-info-circle"></i> No hay ninguna ruta activa.';
+    }
+  });
+  
+  // ==================== PERFIL ACCESIBILIDAD Y ASISTENTE IA ====================
+  let selectedPerfil = localStorage.getItem('userAccessibilityProfile') || null;
+  const perfilElements = document.querySelectorAll('.perfil-badge');
+  const asistenteMensajeSpan = document.getElementById('asistenteMensaje');
+  const refreshBtn = document.getElementById('refreshAsistenteBtn');
+  
+  function updateAsistenteMessage() {
+    if (!asistenteMensajeSpan) return;
+    if (!selectedPerfil) {
+      asistenteMensajeSpan.innerHTML = '🤝 Por favor, selecciona tu perfil de accesibilidad (Motriz, Visual, Auditiva o Cognitiva) para obtener recomendaciones personalizadas en el Valle del Mantaro.';
+      return;
+    }
+    let mensaje = '';
+    switch (selectedPerfil) {
+      case 'motriz':
+        mensaje = '🦽 <strong>Recomendación inclusiva:</strong> Convento de Ocopa (rampas nivel A) y Parque de la Identidad (rutas anchas). Usa el mapa y activa "Mi ubicación" para trazarte rutas sin barreras.';
+        break;
+      case 'visual':
+        mensaje = '👁️‍🗨️ <strong>Recomendación:</strong> Parque de la Identidad Huanca (rutas táctiles y audioguías). Torre Torre tiene señalización braille parcial. El mapa describe ubicaciones con texto alternativo.';
+        break;
+      case 'auditiva':
+        mensaje = '🦻 <strong>Recomendación:</strong> En Convento de Ocopa y Parque de la Identidad hay apoyos visuales y personal capacitado en lengua de señas. Disfruta de recorridos con pictogramas.';
+        break;
+      case 'cognitiva':
+        mensaje = '🧠 <strong>Recomendación:</strong> Parque de la Identidad con pictogramas y señalización simplificada. Horarios de menor flujo: 10am - 12pm. El mapa muestra rutas sin sobrecarga sensorial.';
+        break;
+      default: mensaje = 'Explora destinos accesibles con el mapa y activa tu ubicación para obtener rutas personalizadas.';
+    }
+    asistenteMensajeSpan.innerHTML = mensaje;
+  }
+  
+  perfilElements.forEach(el => {
+    el.addEventListener('click', () => {
+      const perfil = el.getAttribute('data-perfil');
+      perfilElements.forEach(p => p.classList.remove('selected'));
+      el.classList.add('selected');
+      selectedPerfil = perfil;
+      localStorage.setItem('userAccessibilityProfile', selectedPerfil);
+      updateAsistenteMessage();
+    });
+  });
+  
+  if (selectedPerfil && ['motriz','visual','auditiva','cognitiva'].includes(selectedPerfil)) {
+    perfilElements.forEach(el => {
+      if (el.getAttribute('data-perfil') === selectedPerfil) el.classList.add('selected');
+    });
+    updateAsistenteMessage();
+  }
+  
+  refreshBtn?.addEventListener('click', () => {
+    if (selectedPerfil) updateAsistenteMessage();
+    else asistenteMensajeSpan.innerHTML = '⚠️ Aún no has elegido un perfil. Selecciona uno en la pestaña "Registro/Login".';
+  });
+  
+  // Pestañas
+  const tabs = document.querySelectorAll('.nav-btn');
+  const sections = { tab1: document.getElementById('tab1'), tab2: document.getElementById('tab2'), tab3: document.getElementById('tab3') };
+  function activateTab(tabId) {
+    Object.keys(sections).forEach(id => sections[id].classList.remove('active-section'));
+    if (sections[tabId]) sections[tabId].classList.add('active-section');
+    tabs.forEach(btn => {
+      const isActive = btn.getAttribute('data-tab') === tabId;
+      btn.classList.toggle('active', isActive);
+    });
+    if (tabId === 'tab2' && map) setTimeout(() => map.invalidateSize(), 100);
+  }
+  tabs.forEach(btn => {
+    btn.addEventListener('click', () => { const tabValue = btn.getAttribute('data-tab'); if (tabValue) activateTab(tabValue); });
+  });
+  
+  // Cerrar alerta
+  document.getElementById('closeAlertBtn')?.addEventListener('click', () => { document.getElementById('alertIndeci').style.display = 'none'; });
+  
+  // Botones detalles
+  document.querySelectorAll('.ver-detalles').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const titulo = btn.closest('.destino-card')?.querySelector('h3')?.innerText || 'destino';
+      alert(`🌄 ${titulo}: destino inclusivo con servicios adaptados. Usa el mapa interactivo para trazar la ruta accesible.`);
+    });
+  });
+</script>
+</body>
+</html>
